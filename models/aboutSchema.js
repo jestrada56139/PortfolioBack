@@ -6,4 +6,4 @@ var aboutSchema = new Schema({
 
 });
 
-module.exports = mongoose.model('aboutSchema', contactSchema)
+module.exports = mongoose.model('aboutSchema', aboutSchema)

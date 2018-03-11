@@ -1,5 +1,5 @@
 var express = require('express');
-var server = require('./module');
+// var server = require('./module');
 var port = process.env.PORT || 3000;
 var app = express();
 var bodyParser = require('body-parser');
@@ -15,13 +15,23 @@ mongoose.connection.on('error', function(err) {
 
 var Schema = mongoose.Schema;
 var userSchema = new Schema({
-    firstName: String,
-    lastName: String,
-    dob: String,
-    email: String,
-    password: {
-        type: String,
-        required: true
+    firstName : String,
+    lastName : String,
+    password: String,
+    email : String,
+    pic : {
+        type : String,
+        default : './assets/bryan.jpg'
+    },
+  
+    created :{
+        type: Date,
+        default : Date.now()
+    },
+
+    modified : {
+        type: Date,
+        default : Date.now()
     }
 });
 var User = mongoose.model('user', userSchema);
@@ -31,54 +41,74 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 app.use(cors({origin: true, credentials: true}));
 
-app.post('/createUser', function(req,res){
+
+app.post('/admin/register', function(req,res){
     var newUser = new User(req.body);
     newUser.save(function(err,product){
         if(err) throw err;
         console.log("user saved!");
         res.status(200).send({
-            zamora: 'user saved!'
+            type: true,
+            data: 'Succesfully Registered'})
         });
     });
-});
 
-app.post('/getUser', function(req,res){
-    var newUser = new User(req.body);
-    User.find({ 'firstName': req.body.firstName }, 'firstName lastName email dob', function (err, data) {
-        if (err) throw err;
-        console.log(data);
+app.post('/admin/login', function(req, res){
+User.findOne({ 'email': req.body.email }, 'password', function (err, product){
+  if (err) throw err;
+    console.log(product);
+    if (product === null){
         res.status(200).send({
-            data: data
-        });
-    });
+            type: false,
+            data: 'Email does not exist'
+    })
+    
+ } else {
+        if (req.body.password === product.password){
+            res.status(200).send({
+                type: true,
+                data: 'Welcome to the summoners Rift'
+            })
+        } else {
+            res.status(200).send({
+                type: false,
+                data: 'Incorrect Password'
+            })
+    
+        }
+    }
 
-});
+
+})
+})
+
 
 // listen on port 3000
 app.listen(port,function (){
     console.log('listening on port: ',port);
-    var newUser = new User(
-        {
-            firstName: 'roberto',
-            dob: '01-02-1993',
-            email: 'roberto@urbantxt.com',
-            password: 'robiscool999'
-        }
-    );
-    newUser.save();
-});
 
-// User.find({'_id': '5a9f6d09395c9832e528884d' },'firstName lastName email dob',function(err, data){
-//     if(err) throw err;
-//     console.log(data);
+
+})
+
+// app.post('/createUser', function(req,res){
+//     var newUser = new User(req.body);
+//     newUser.save(function(err,product){
+//         if(err) throw err;
+//         console.log("user saved!");
+//         res.status(200).send({
+//             zamora: 'user saved!'
+//         });
+//     });
 // });
-    // var newUser = new User(
-    //     {
-    //         firstName: 'roberto',
-    //         lastName: 'sanchez',
-    //         dob: '01-02-1993',
-    //         email: 'roberto@urbantxt.com',
-    //         password: 'robiscool99'
-    //     }
-    // );
-    // newUser.save();
+
+// app.post('/getUser', function(req,res){
+//     var newUser = new User(req.body);
+//     User.find({ 'firstName': req.body.firstName }, 'firstName lastName email dob', function (err, data) {
+//         if (err) throw err;
+//         console.log(data);
+//         res.status(200).send({
+//             data: data
+//         });
+//     });
+
+// });
