@@ -6,6 +6,8 @@ var bodyParser = require('body-parser');
 var cors = require('cors');
 var test = require('./routes/Challenge1/route');
 var mongoose = require('mongoose');
+var bcrypt = require('bcrypt');
+var salt = 10;
 
 
 mongoose.connect('mongodb://user020:userdata1999@ds257848.mlab.com:57848/zamora');
@@ -42,7 +44,35 @@ app.use(bodyParser.json());
 app.use(cors({origin: true, credentials: true}));
 
 
-app.post('/admin/register', function(req,res){
+var xssService = {
+    sanitize: function (req, res, next) {
+            var data = req.body
+            for(var key in data) {
+                if(data.hasOwnProperty(key)) {
+                    data[key] = xss(data[key]);
+                    console.log(data[key]);
+                }
+              
+             }
+             next();
+    }
+   
+}
+
+var bcryptService = {
+    hash: function(req, res, next){
+        bcrypt.hash(req.body.password, salt, function(err, res){
+            if (err) throw err;
+            req.body.password = res;
+            console.log(res)
+            next();
+        })
+    }
+    
+}
+
+
+app.post('/admin/register', xssService.sanitize,bcryptService.hash, function(req,res,){
     var newUser = new User(req.body);
     newUser.save(function(err,product){
         if(err) throw err;
@@ -52,6 +82,8 @@ app.post('/admin/register', function(req,res){
             data: 'Succesfully Registered'})
         });
     });
+
+
 
 app.post('/admin/login', function(req, res){
 User.findOne({ 'email': req.body.email }, 'password', function (err, product){
